@@ -38,6 +38,57 @@ create_volume_subfolder() {
     done
 }
 
+create_conf() {
+    if [ ! -e /data/gogs/conf/app.ini ]; then
+cat << EOF > /data/gogs/conf/app.ini
+APP_NAME = ${GOGS_APP_NAME:-DockerGogs}
+RUN_USER = ${GOGS_RUN_USER:-git}
+RUN_MODE = ${GOGS_RUN_MODE:-prod}
+
+[database]
+DB_TYPE  = ${GOGS_DB_TYPE:-sqlite3}
+HOST     = ${GOGS_DB_HOST:-127.0.0.1:5432}
+NAME     = ${GOGS_DB_NAME:-gogs}
+USER     = ${GOGS_DB_USER:-root}
+PASSWD   = ${GOGS_DB_PASSWORD}
+SSL_MODE = ${GOGS_DB_SSL_MODE:-disable}
+PATH     = ${GOGS_DB_PATH:-data/gogs.db}
+
+[repository]
+ROOT = ${GOGS_ROOT:-/data/git/gogs-repositories}
+
+[server]
+DOMAIN       = ${GOGS_DOMAIN:-localhost}
+HTTP_PORT    = ${GOGS_HTTP_PORT:-3000}
+ROOT_URL     = ${GOGS_ROOT_URL:-http://localhost:3000/}
+DISABLE_SSH  = ${GOGS_DISABLE_SSH:-false}
+SSH_PORT     = ${GOGS_SSH_PORT:-22}
+OFFLINE_MODE = ${GOGS_OFFLINE_MODE:-false}
+
+[mailer]
+ENABLED = ${GOGS_MAILER:-false}
+
+[service]
+REGISTER_EMAIL_CONFIRM = ${GOGS_REGISTER_EMAIL_CONFIRM:-false}
+ENABLE_NOTIFY_MAIL     = ${GOGS_ENABLE_NOTIFY_MAIL:-false}
+DISABLE_REGISTRATION   = ${GOGS_DISABLE_REGISTRATION:-true}
+ENABLE_CAPTCHA         = ${GOGS_ENABLE_CAPTCHA:-false}
+REQUIRE_SIGNIN_VIEW    = ${GOGS_REQUIRE_SIGNIN_VIEW:-true}
+
+[picture]
+DISABLE_GRAVATAR = ${GOGS_DISABLE_GRAVATAR:-true}
+
+[session]
+PROVIDER = file
+
+[log]
+MODE      = file
+LEVEL     = Info
+ROOT_PATH = /app/gogs/log
+EOF
+    fi
+}
+
 map_uidgid() {
   USERMAP_ORIG_UID=$(id -u git)
   USERMAP_ORIG_GID=$(id -g git)
@@ -54,6 +105,7 @@ map_uidgid() {
 
 cleanup
 create_volume_subfolder
+create_conf
 map_uidgid
 
 LINK=$(echo "$SOCAT_LINK" | tr '[:upper:]' '[:lower:]')

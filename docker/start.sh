@@ -38,8 +38,23 @@ create_volume_subfolder() {
     done
 }
 
+map_uidgid() {
+  USERMAP_ORIG_UID=$(id -u git)
+  USERMAP_ORIG_GID=$(id -g git)
+  USERMAP_GID=${USERMAP_GID:-${USERMAP_UID:-$USERMAP_ORIG_GID}}
+  USERMAP_UID=${USERMAP_UID:-$USERMAP_ORIG_UID}
+  if [[ ${USERMAP_UID} != ${USERMAP_ORIG_UID} ]] || [[ ${USERMAP_GID} != ${USERMAP_ORIG_GID} ]]; then
+    echo "Mapping UID and GID for git:git to $USERMAP_UID:$USERMAP_GID"
+    #groupmod -g ${USERMAP_GID} git
+    sed -i -e "s|:${USERMAP_ORIG_GID}:|:${USERMAP_GID}:|" /etc/group
+    sed -i -e "s|:${USERMAP_ORIG_UID}:${USERMAP_ORIG_GID}:|:${USERMAP_UID}:${USERMAP_GID}:|" /etc/passwd
+    find /data -path /data/git/\* -prune -o -print0 | xargs -0 chown -h git:
+  fi
+}
+
 cleanup
 create_volume_subfolder
+map_uidgid
 
 LINK=$(echo "$SOCAT_LINK" | tr '[:upper:]' '[:lower:]')
 if [ "$LINK" = "false" -o "$LINK" = "0" ]; then

@@ -60,13 +60,18 @@ ROOT = ${GOGS_ROOT:-/data/git/gogs-repositories}
 [server]
 DOMAIN       = ${GOGS_DOMAIN:-localhost}
 HTTP_PORT    = ${GOGS_HTTP_PORT:-3000}
-ROOT_URL     = ${GOGS_ROOT_URL:-http://localhost:3000/}
+ROOT_URL     = ${GOGS_ROOT_URL:-"http://localhost:3000/"}
 DISABLE_SSH  = ${GOGS_DISABLE_SSH:-false}
 SSH_PORT     = ${GOGS_SSH_PORT:-22}
 OFFLINE_MODE = ${GOGS_OFFLINE_MODE:-false}
 
 [mailer]
-ENABLED = ${GOGS_MAILER:-false}
+ENABLED     = ${GOGS_MAIL_ENABLED:-false}
+HOST        = ${GOGS_MAIL_HOST}
+FROM        = ${GOGS_MAIL_FROM}
+USER        = ${GOGS_MAIL_USER}
+PASSWD      = ${GOGS_MAIL_PASSWD}
+SKIP_VERIFY = ${GOGS_MAIL_SKIP_VERIFY:-false}
 
 [service]
 REGISTER_EMAIL_CONFIRM = ${GOGS_REGISTER_EMAIL_CONFIRM:-false}

@@ -14,7 +14,7 @@ import (
 	"io/ioutil"
 
 	"github.com/Unknwon/cae/zip"
-	"github.com/codegangsta/cli"
+	"github.com/urfave/cli"
 
 	"github.com/gogits/gogs/models"
 	"github.com/gogits/gogs/modules/setting"
@@ -28,7 +28,8 @@ It can be used for backup and capture Gogs server image to send to maintainer`,
 	Action: runDump,
 	Flags: []cli.Flag{
 		stringFlag("config, c", "custom/conf/app.ini", "Custom configuration file path"),
-		boolFlag("verbose, v", "show process details"),
+		boolFlag("verbose, v", "Show process details"),
+		stringFlag("tempdir, t", os.TempDir(), "Temporary dir path"),
 	},
 }
 
@@ -40,7 +41,11 @@ func runDump(ctx *cli.Context) error {
 	models.LoadConfigs()
 	models.SetEngine()
 
-	TmpWorkDir, err := ioutil.TempDir(os.TempDir(), "gogs-dump-")
+	tmpDir := ctx.String("tempdir")
+	if _, err := os.Stat(tmpDir); os.IsNotExist(err) {
+		log.Fatalf("Path does not exist: %s", tmpDir)
+	}
+	TmpWorkDir, err := ioutil.TempDir(tmpDir, "gogs-dump-")
 	if err != nil {
 		log.Fatalf("Fail to create tmp work directory: %v", err)
 	}
@@ -89,6 +94,10 @@ func runDump(ctx *cli.Context) error {
 	if err = z.Close(); err != nil {
 		os.Remove(fileName)
 		log.Fatalf("Fail to save %s: %v", fileName, err)
+	}
+
+	if err := os.Chmod(fileName, 0600); err != nil {
+		log.Printf("Can't change file access permissions mask to 0600: %v", err)
 	}
 
 	log.Printf("Removing tmp work dir: %s", TmpWorkDir)
